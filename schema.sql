@@ -1,20 +1,33 @@
+-- 1. Create the Users Table
 CREATE TABLE IF NOT EXISTS users (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
     name VARCHAR(120) NOT NULL,
     email VARCHAR(190) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
-    total_required_hours DECIMAL(10,2) NOT NULL DEFAULT 0,
-    theme_mode VARCHAR(10) NOT NULL DEFAULT 'light',
-    progress_color_hex VARCHAR(7) NOT NULL DEFAULT '#0d6efd'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    role VARCHAR(20) DEFAULT 'student',
+    total_required_hours DECIMAL(10,2) NOT NULL DEFAULT 600.00,
+    theme_mode VARCHAR(10) NOT NULL DEFAULT 'dark',
+    progress_color_hex VARCHAR(7) NOT NULL DEFAULT '#e10600',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
+-- 2. Create the Time Logs Table
 CREATE TABLE IF NOT EXISTS time_logs (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id INT UNSIGNED NOT NULL,
-    time_in DATETIME NOT NULL,
-    time_out DATETIME NULL,
-    hours_rendered DECIMAL(10,2) NOT NULL DEFAULT 0,
-    CONSTRAINT fk_time_logs_user
-        FOREIGN KEY (user_id) REFERENCES users(id)
-        ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    check_in TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    check_out TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'pending',
+    remarks TEXT
+);
+
+-- 3. (Optional) Insert a Test Admin Account
+-- Password is: admin123
+INSERT INTO users (name, email, password, role, total_required_hours) 
+VALUES (
+    'Ziggy', 
+    'admin@test.com', 
+    '$2y$10$89.v/zK3R4.T.tC.0.B.0.bXvj9fM7Y1/2g3h4i5j6k7l8m9n0o1p', 
+    'admin', 
+    600.00
+) ON CONFLICT (email) DO NOTHING;
