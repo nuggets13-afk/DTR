@@ -15,35 +15,32 @@ function db(): PDO
 
     // Vercel Environment Variables
     $host = getenv('DB_HOST');
-$name = getenv('DB_NAME');
-$user = getenv('DB_USER');
-$pass = getenv('DB_PASS');
-$port = getenv('DB_PORT') ?: '3306';
-
-// If these are empty, getenv() returns false, triggering the error you saw.
+    $name = getenv('DB_NAME');
+    $user = getenv('DB_USER');
+    $pass = getenv('DB_PASS');
+    $port = getenv('DB_PORT') ?: '27755'; // Updated default port to match your Aiven screenshot
 
     // Check if variables are missing
-    if (!$host || !$name || !$user) {
-        throw new Exception("Database configuration missing in Vercel Environment Variables.");
+    if (!$host || !$name || !$user || !$pass) {
+        throw new Exception("Database configuration missing in Vercel Environment Variables. Check Host, Name, User, and Pass.");
     }
 
-    // Change "mysql" to "pgsql"
-$dsn = "pgsql:host={$host};port={$port};dbname={$name};sslmode=require";
+    // PostgreSQL DSN for Aiven (Requires SSL)
+    $dsn = "pgsql:host={$host};port={$port};dbname={$name};sslmode=require";
 
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES   => false,
-        // Critical for Serverless: Persistent connections can sometimes cause issues, 
-        // so we stick to standard connections here.
     ];
 
     try {
         $pdo = new PDO($dsn, $user, $pass, $options);
         return $pdo;
     } catch (PDOException $e) {
-        // This will help you see the EXACT error in Vercel Logs
+        // This log goes to the Vercel 'Logs' tab
         error_log("Connection failed: " . $e->getMessage());
-        die("Database connection error. Check Vercel logs for details.");
+        
+        // This output helps you debug immediately on the webpage
+        die("Database connection error: " . $e->getMessage());
     }
 }
