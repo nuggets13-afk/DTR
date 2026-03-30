@@ -15,10 +15,12 @@ function db(): PDO
 
     // Vercel Environment Variables
     $host = getenv('DB_HOST');
-    $port = getenv('DB_PORT') ?: '3306';
-    $name = getenv('DB_NAME');
-    $user = getenv('DB_USER');
-    $pass = getenv('DB_PASS');
+$name = getenv('DB_NAME');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASS');
+$port = getenv('DB_PORT') ?: '3306';
+
+// If these are empty, getenv() returns false, triggering the error you saw.
 
     // Check if variables are missing
     if (!$host || !$name || !$user) {
