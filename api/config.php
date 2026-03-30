@@ -50,4 +50,3 @@ error_log("Connection failed: " . $e->getMessage());
 die("Database connection error. Check Vercel logs for details.");
 }
 }
-}
