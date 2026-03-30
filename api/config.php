@@ -27,7 +27,8 @@ $port = getenv('DB_PORT') ?: '3306';
         throw new Exception("Database configuration missing in Vercel Environment Variables.");
     }
 
-    $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
+    // Change "mysql" to "pgsql"
+$dsn = "pgsql:host={$host};port={$port};dbname={$name};sslmode=require";
 
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
