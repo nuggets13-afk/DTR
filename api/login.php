@@ -2,7 +2,7 @@
 declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 
-// session_start() is usually inside config.php, but we check here just in case
+// Start session if not already started (config.php does this, but safety first)
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -10,28 +10,26 @@ if (session_status() === PHP_SESSION_NONE) {
 if (isset($_SESSION['user_id'])) {
     header('Location: dashboard.php');
     exit;
-}
-
-$errors = [];
-$email = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = trim($_POST['email'] ?? '');
-    $password = $_POST['password'] ?? '';
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = 'Valid email is required.';
-    }
-    
-    if ($password === '') {
-        $errors[] = 'Password is required.';
-    }
+@@ -18,138 +23,24 @@
+    if ($password === '') $errors[] = 'Password is required.';
 
     if (!$errors) {
+        $pdo = db();
+        $stmt = $pdo->prepare("SELECT id, name, password FROM users WHERE email = ? LIMIT 1");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch();
+
+        if (!$user || !password_verify($password, $user['password'])) {
+            $errors[] = 'Invalid email or password.';
+        } else {
+            $_SESSION['user_id'] = (int)$user['id'];
+            $_SESSION['user_name'] = $user['name'];
+            header('Location: dashboard.php');
+            exit;
         try {
             $pdo = db();
-            // We fetch name and total_required_hours to personalize your 600-hour dashboard
-            $stmt = $pdo->prepare("SELECT id, name, password, total_required_hours FROM users WHERE email = ? LIMIT 1");
+            // We select 'name' because your session logic uses $_SESSION['user_name'] = $user['name']
+            $stmt = $pdo->prepare("SELECT id, name, password FROM users WHERE email = ? LIMIT 1");
             $stmt->execute([$email]);
             $user = $stmt->fetch();
 
@@ -40,14 +38,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } else {
                 $_SESSION['user_id'] = (int)$user['id'];
                 $_SESSION['user_name'] = $user['name'];
-                $_SESSION['target_hours'] = $user['total_required_hours'];
-                
                 header('Location: dashboard.php');
                 exit;
             }
-        } catch (PDOException $e) {
-            // This catches database errors (like missing tables) and shows a clean message
-            $errors[] = "Database error: " . $e->getMessage();
+        } catch (Exception $e) {
+            $errors[] = "Connection error: " . $e->getMessage();
         }
     }
 }
@@ -119,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         a { color: #fca5a5; }
         a:hover { color: #fecaca; }
+
         .auth-foot {
             color: #e5e7eb;
             font-size: .88rem;
