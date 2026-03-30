@@ -101,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         a { color: #fca5a5; }
         a:hover { color: #fecaca; }
+
         .auth-foot {
             color: #e5e7eb;
             font-size: .88rem;
