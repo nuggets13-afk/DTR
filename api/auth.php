@@ -2,24 +2,19 @@
 declare(strict_types=1);
 require_once __DIR__ . '/config.php';
 
-// Get the current script name (e.g., 'login.php' or 'dashboard.php')
 $currentPage = basename($_SERVER['PHP_SELF']);
-
-// Define pages that DON'T require a login
 $publicPages = ['login.php', 'register.php', 'index.php'];
 
-// Redirect to login ONLY if:
-// 1. The user is NOT logged in
-// 2. The current page is NOT in the public list
+// 1. If NOT logged in and trying to access a PRIVATE page -> go to login
 if (!isset($_SESSION['user_id']) && !in_array($currentPage, $publicPages)) {
+    session_write_close();
     header('Location: login.php');
     exit;
 }
 
-// Redirect to dashboard if:
-// 1. The user IS already logged in
-// 2. They are trying to access login or register
+// 2. If ALREADY logged in and trying to access login/register -> go to dashboard
 if (isset($_SESSION['user_id']) && in_array($currentPage, ['login.php', 'register.php'])) {
+    session_write_close();
     header('Location: dashboard.php');
     exit;
 }
