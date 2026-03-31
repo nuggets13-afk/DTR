@@ -83,6 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(180deg, #171717 0%, #101010 100%);
             box-shadow: 0 14px 36px rgba(0,0,0,.38);
         }
+        /* Fixes the dark label visibility */
+        .form-label { 
+            color: #f5f5f1 !important; 
+            font-weight: 500;
+        }
         .btn-login { background: #e10600; border: none; font-weight: 700; border-radius: 10px; padding: .55rem; color: #fff; }
         .btn-login:hover { background: #b80400; }
         .form-control { background: #111; border: 1px solid #343434; color: #fff; }
