@@ -92,7 +92,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-login:hover { background: #b80400; }
         .form-control { background: #111; border: 1px solid #343434; color: #fff; }
         .form-control:focus { background: #111; color: #fff; border-color: #e10600; box-shadow: 0 0 0 .18rem rgba(225,6,0,.2); }
-        .brand-logo { height: 60px; width: auto; filter: drop-shadow(0 0 8px rgba(225,6,0,0.4)); }
+        .brand-logo { height: 60px; width: auto; max-width: 100%; filter: drop-shadow(0 0 8px rgba(225,6,0,0.4)); }
+
+        .auth-foot {
+            color: #e5e7eb !important;
+        }
+        .auth-foot a {
+            color: #fca5a5 !important;
+        }
+        .auth-foot a:hover {
+            color: #fecaca !important;
+        }
+
+        @media (max-width: 576px) {
+            .container.py-5 {
+                padding-top: 1rem !important;
+                padding-bottom: 1rem !important;
+            }
+            .row[style*="min-height: 80vh"] {
+                min-height: auto !important;
+            }
+            .auth-card .card-body {
+                padding: 1rem !important;
+            }
+            .brand-logo {
+                height: 44px;
+            }
+            .form-label {
+                font-size: .86rem;
+            }
+            .form-control {
+                font-size: .9rem;
+                padding: .5rem .65rem;
+            }
+            .btn-login {
+                padding: .6rem;
+                font-size: .92rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -132,8 +169,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button class="btn btn-login w-100" type="submit">Sign In</button>
                     </form>
 
-                    <p class="mt-4 mb-0 text-center small text-secondary">
-                        New here? <a href="register.php" class="text-danger text-decoration-none fw-bold">Create an account</a>
+                    <p class="mt-4 mb-0 text-center small auth-foot">
+                        New here? <a href="register.php" class="text-decoration-none fw-bold">Create an account</a>
                     </p>
                 </div>
             </div>
