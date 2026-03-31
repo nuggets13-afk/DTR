@@ -223,6 +223,48 @@ $progressColorHex = '#e10600';
         .table.table-dark { --bs-table-bg: #121212; --bs-table-striped-bg: #161616; --bs-table-hover-bg: #1b1b1b; border-color: rgba(255,255,255,.08); }
         .table thead th { font-size: .77rem; letter-spacing: .04em; text-transform: uppercase; color: #d1d5db; border-bottom-color: rgba(255,255,255,.13); }
         .table td { font-size: .9rem; }
+
+        .action-group {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 62px;
+            border-radius: 8px;
+            padding: .28rem .58rem;
+            font-size: .76rem;
+            font-weight: 700;
+            letter-spacing: .02em;
+            text-decoration: none;
+            border: 1px solid transparent;
+            transition: .15s ease-in-out;
+        }
+        .action-edit {
+            color: #e5e7eb;
+            background: #171717;
+            border-color: rgba(255,255,255,.16);
+        }
+        .action-edit:hover {
+            color: #fff;
+            background: #202020;
+            border-color: rgba(255,255,255,.28);
+        }
+        .action-delete {
+            color: #fff;
+            background: linear-gradient(180deg, #f20b00 0%, #bc0500 100%);
+            border-color: #d10600;
+            cursor: pointer;
+        }
+        .action-delete:hover {
+            background: linear-gradient(180deg, #ff1308 0%, #a70400 100%);
+            border-color: #e10600;
+        }
+
         .modal-content.glass-card { background: linear-gradient(180deg, #151515 0%, #0f0f0f 100%); border-color: rgba(255,255,255,.12); }
 
         @media (max-width: 768px) {
@@ -350,8 +392,13 @@ $progressColorHex = '#e10600';
                                 <td><?= $log['time_out'] ? date('H:i', strtotime((string)$log['time_out'])) : 'Active' ?></td>
                                 <td><?= htmlspecialchars(formatHoursMins((float)$log['hours_rendered'])) ?> <span class="opacity-75">(<?= number_format((float)$log['hours_rendered'], 2) ?>h)</span></td>
                                 <td>
-                                    <a href="?edit=<?= $log['id'] ?>" class="text-info me-2">Edit</a>
-                                    <form method="post" class="d-inline"><input type="hidden" name="delete_log_id" value="<?= $log['id'] ?>"><button name="delete_shift" class="btn btn-link text-danger p-0" onclick="return confirm('Delete?')">Del</button></form>
+                                    <div class="action-group">
+                                        <a href="?edit=<?= $log['id'] ?>" class="action-btn action-edit">Edit</a>
+                                        <form method="post" class="d-inline mb-0">
+                                            <input type="hidden" name="delete_log_id" value="<?= $log['id'] ?>">
+                                            <button name="delete_shift" class="action-btn action-delete" onclick="return confirm('Delete this shift?')">Delete</button>
+                                        </form>
+                                    </div>
                                 </td>
                             <?php endif; ?>
                         </tr>
