@@ -1,11 +1,5 @@
 <?php
-declare(strict_types=1);
-require_once __DIR__ . '/config.php';
-
-if (isset($_SESSION['user_id'])) {
-    header('Location: dashboard.php');
-    exit;
-}
-
-header('Location: login.php');
+require_once __DIR__ . '/auth.php';
+// If they pass auth.php, they are logged in, so show dashboard
+header('Location: dashboard.php');
 exit;
