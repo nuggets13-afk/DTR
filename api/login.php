@@ -105,29 +105,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @media (max-width: 576px) {
+            body {
+                background: #050505;
+            }
             .container.py-5 {
-                padding-top: 1rem !important;
-                padding-bottom: 1rem !important;
+                padding-top: .35rem !important;
+                padding-bottom: .5rem !important;
+                max-width: 100% !important;
             }
             .row[style*="min-height: 80vh"] {
                 min-height: auto !important;
+                margin: 0 !important;
+            }
+            .row[style*="min-height: 80vh"] > [class*="col-"] {
+                padding-left: .35rem !important;
+                padding-right: .35rem !important;
+            }
+            .auth-card {
+                border-radius: 12px;
+                margin: 0;
             }
             .auth-card .card-body {
-                padding: 1rem !important;
+                padding: .95rem .85rem !important;
+            }
+            .text-center.mb-4 {
+                margin-bottom: .85rem !important;
             }
             .brand-logo {
-                height: 44px;
+                height: 34px;
             }
             .form-label {
-                font-size: .86rem;
+                font-size: .82rem;
+                margin-bottom: .35rem;
             }
             .form-control {
-                font-size: .9rem;
-                padding: .5rem .65rem;
+                font-size: .88rem;
+                min-height: 40px;
+                padding: .42rem .62rem;
+            }
+            .mb-3 {
+                margin-bottom: .75rem !important;
+            }
+            .mb-4 {
+                margin-bottom: .9rem !important;
             }
             .btn-login {
-                padding: .6rem;
-                font-size: .92rem;
+                padding: .58rem;
+                font-size: .9rem;
+            }
+            .auth-foot {
+                font-size: .82rem;
+                margin-top: .9rem !important;
             }
         }
     </style>
