@@ -114,8 +114,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 max-width: 100% !important;
             }
             .row[style*="min-height: 80vh"] {
-                min-height: auto !important;
+                min-height: 100vh !important;
                 margin: 0 !important;
+                align-items: center !important;
             }
             .row[style*="min-height: 80vh"] > [class*="col-"] {
                 padding-left: .35rem !important;
