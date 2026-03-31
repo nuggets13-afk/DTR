@@ -40,6 +40,14 @@ function computeHours(?string $in, ?string $out): float
     return round($seconds / 3600, 2);
 }
 
+function formatHoursMins(float $hours): string
+{
+    $totalMinutes = (int) round($hours * 60);
+    $h = intdiv($totalMinutes, 60);
+    $m = $totalMinutes % 60;
+    return "{$h}h {$m}m";
+}
+
 // Handle Form Submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Save Total Required Hours Settings
@@ -273,13 +281,13 @@ $progressColorHex = '#e10600';
         <div class="col-md-4">
             <div class="glass-card card p-4">
                 <div class="stat-head">Hours Rendered</div>
-                <div class="stat-value text-white"><?= number_format($hoursRendered, 2) ?></div>
+                <div class="stat-value text-white"><?= htmlspecialchars(formatHoursMins($hoursRendered)) ?></div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="glass-card card p-4">
                 <div class="stat-head">Hours Remaining</div>
-                <div class="stat-value text-white"><?= number_format($hoursRemaining, 2) ?></div>
+                <div class="stat-value text-white"><?= htmlspecialchars(formatHoursMins($hoursRemaining)) ?></div>
             </div>
         </div>
         <div class="col-md-4">
@@ -340,7 +348,7 @@ $progressColorHex = '#e10600';
                             <?php else: ?>
                                 <td><?= date('M d, H:i', strtotime((string)$log['time_in'])) ?></td>
                                 <td><?= $log['time_out'] ? date('H:i', strtotime((string)$log['time_out'])) : 'Active' ?></td>
-                                <td><?= number_format((float)$log['hours_rendered'], 2) ?></td>
+                                <td><?= htmlspecialchars(formatHoursMins((float)$log['hours_rendered'])) ?> <span class="opacity-75">(<?= number_format((float)$log['hours_rendered'], 2) ?>h)</span></td>
                                 <td>
                                     <a href="?edit=<?= $log['id'] ?>" class="text-info me-2">Edit</a>
                                     <form method="post" class="d-inline"><input type="hidden" name="delete_log_id" value="<?= $log['id'] ?>"><button name="delete_shift" class="btn btn-link text-danger p-0" onclick="return confirm('Delete?')">Del</button></form>
