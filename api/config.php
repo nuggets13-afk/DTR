@@ -1,25 +1,22 @@
 <?php
 declare(strict_types=1);
 
-// 1. MUST happen before session_start() and before ANY output
+// 1. Define path
 $sessionPath = '/tmp/sessions';
-if (!is_dir($sessionPath)) {
-    mkdir($sessionPath, 0700, true);
-}
 
-// Only set the path if a session hasn't been started yet by another file
-if (session_status() === PHP_SESSION_NONE) {
+// 2. Only run session setup if headers haven't been sent and session isn't active
+if (session_status() === PHP_SESSION_NONE && !headers_sent()) {
+    if (!is_dir($sessionPath)) {
+        mkdir($sessionPath, 0700, true);
+    }
     session_save_path($sessionPath);
     session_start([
         'cookie_httponly' => true,
-        'cookie_secure'   => true,
+        'cookie_secure'   => true, 
         'cookie_samesite' => 'Lax',
     ]);
 }
 
-/**
- * Database connection using Vercel Environment Variables
- */
 function db(): PDO
 {
     static $pdo = null;
