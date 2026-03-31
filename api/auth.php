@@ -1,17 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// Vercel/Serverless Session Fix: Standard PHP sessions fail if the path isn't writable.
-// We use /tmp because it is the only writable directory in Vercel's environment.
-if (!is_dir('/tmp/sessions')) {
-    mkdir('/tmp/sessions', 0700, true);
-}
-session_save_path('/tmp/sessions');
-
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
+// This must come first to start the session correctly via config
 require_once __DIR__ . '/config.php';
 
 $currentPage = basename($_SERVER['PHP_SELF']);
