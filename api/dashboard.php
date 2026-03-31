@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+// auth.php now handles the session check and redirects safely
 require_once __DIR__ . '/auth.php';
 
 $pdo = db();
@@ -9,6 +10,7 @@ $userName = $_SESSION['user_name'] ?? 'User';
 $errors = [];
 $success = '';
 
+// Helper to calculate your 600-hour progress
 function computeHours(?string $in, ?string $out): float
 {
     if (!$in || !$out) return 0.0;
@@ -18,16 +20,21 @@ function computeHours(?string $in, ?string $out): float
     return round($seconds / 3600, 2);
 }
 
+// Verify the user still exists in the database
 $stmtUser = $pdo->prepare("SELECT total_required_hours FROM users WHERE id = ? LIMIT 1");
 $stmtUser->execute([$userId]);
 $user = $stmtUser->fetch();
 
 if (!$user) {
-    header('Location: logout.php');
+    // If the user was deleted from the DB, clear session and kick to login
+    session_destroy();
+    header('Location: login.php');
     exit;
 }
 
 $totalRequired = (float)$user['total_required_hours'];
+
+// ... rest of your existing dashboard HTML and logic stays the same
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['save_settings'])) {
