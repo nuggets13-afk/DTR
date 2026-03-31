@@ -148,27 +148,103 @@ $progressColorHex = '#e10600';
     <title>Dashboard - OJT Tracking</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --accent: #e10600; --accent-dark: #b80400; }
+        :root {
+            --accent: #e10600;
+            --accent-dark: #b80400;
+            --text-main: #f5f5f1;
+            --text-soft: #cfd3d8;
+            --panel: #121212;
+            --panel-2: #0f0f0f;
+            --line: rgba(255,255,255,.09);
+        }
         body {
             font-family: "Netflix Sans", "Helvetica Neue", Arial, sans-serif;
             min-height: 100vh;
-            background: radial-gradient(1200px 700px at 20% -20%, #2a0a0a 0%, #0b0b0b 45%, #050505 100%);
-            color: #f5f5f1;
+            background:
+                radial-gradient(1000px 580px at 15% -12%, rgba(225,6,0,.22) 0%, rgba(16,16,16,0) 60%),
+                radial-gradient(850px 420px at 100% 0%, rgba(225,6,0,.14) 0%, rgba(16,16,16,0) 60%),
+                linear-gradient(180deg, #0c0c0c 0%, #070707 100%);
+            color: var(--text-main);
         }
-        .top-nav { backdrop-filter: blur(6px); background: rgba(8,8,8,.85); border-bottom: 1px solid rgba(229,9,20,.25); }
+        .top-nav {
+            backdrop-filter: blur(8px);
+            background: rgba(7,7,7,.88);
+            border-bottom: 1px solid rgba(229,9,20,.26);
+            box-shadow: 0 8px 20px rgba(0,0,0,.35);
+        }
         .brand-logo { height: 52px; width: auto; object-fit: contain; }
-        .pill-btn { border-radius: 10px; padding: .45rem .95rem; font-weight: 700; }
-        .btn-settings { border: 1px solid rgba(229,9,20,.5); background: #121212; color: #f5f5f1; }
-        .btn-logout { background: var(--accent); border-color: var(--accent); color: #fff; }
-        .glass-card { border: 1px solid rgba(255,255,255,.08); border-radius: 16px; background: linear-gradient(180deg, #171717 0%, #101010 100%); }
-        .stat-head { font-size: .82rem; font-weight: 700; text-transform: uppercase; opacity: .78; }
-        .stat-value { font-size: 1.9rem; font-weight: 900; }
-        .progress-shell { background: rgba(255,255,255,.15); border-radius: 999px; height: 28px; overflow: hidden; }
-        .progress-fill { height: 100%; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .pill-btn { border-radius: 10px; padding: .48rem .95rem; font-weight: 700; font-size: .86rem; }
+        .btn-settings {
+            border: 1px solid rgba(229,9,20,.45);
+            background: #151515;
+            color: #f3f4f6;
+        }
+        .btn-settings:hover { background: #1a1a1a; color: #fff; border-color: rgba(229,9,20,.7); }
+        .btn-logout {
+            background: linear-gradient(180deg, #f20b00 0%, #c80500 100%);
+            border-color: #d10600;
+            color: #fff;
+        }
+        .btn-logout:hover { background: linear-gradient(180deg, #ff1207 0%, #b90400 100%); color: #fff; }
+        .glass-card {
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: linear-gradient(180deg, #171717 0%, #101010 100%);
+            box-shadow: 0 10px 24px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.03);
+        }
+        .stat-head { font-size: .75rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase; color: var(--text-soft); }
+        .stat-value { font-size: 1.85rem; font-weight: 900; letter-spacing: .01em; }
+        .progress-shell {
+            background: linear-gradient(180deg, rgba(255,255,255,.13) 0%, rgba(255,255,255,.07) 100%);
+            border-radius: 999px;
+            height: 28px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,.14);
+        }
+        .progress-fill {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: .83rem;
+            text-shadow: 0 1px 1px rgba(0,0,0,.4);
+        }
         .nf-input { background: #111 !important; border: 1px solid #333 !important; color: #fff !important; }
         .nf-input:focus { border-color: var(--accent) !important; box-shadow: 0 0 0 .2rem rgba(225,6,0,.2) !important; }
-        .kpi-row { background: #0f0f0f; border: 1px solid rgba(255,255,255,.09); padding: 1rem; border-radius: 12px; display: flex; justify-content: space-between; margin-bottom: .8rem; }
-        @media (max-width: 576px) { .brand-logo { height: 34px; } }
+        .table.table-dark { --bs-table-bg: #121212; --bs-table-striped-bg: #161616; --bs-table-hover-bg: #1b1b1b; border-color: rgba(255,255,255,.08); }
+        .table thead th { font-size: .77rem; letter-spacing: .04em; text-transform: uppercase; color: #d1d5db; border-bottom-color: rgba(255,255,255,.13); }
+        .table td { font-size: .9rem; }
+        .modal-content.glass-card { background: linear-gradient(180deg, #151515 0%, #0f0f0f 100%); border-color: rgba(255,255,255,.12); }
+
+        @media (max-width: 768px) {
+            .top-nav .container {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: .65rem;
+            }
+            .top-nav .d-flex.gap-2 {
+                width: 100%;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+            }
+            .pill-btn {
+                width: 100%;
+                white-space: nowrap;
+                text-align: center;
+                font-size: .82rem;
+                padding: .5rem .6rem;
+            }
+            .stat-value { font-size: 1.45rem; }
+        }
+        @media (max-width: 576px) {
+            body { background: #080808; }
+            .container.py-4 { padding-top: .95rem !important; padding-bottom: 1.1rem !important; }
+            .brand-logo { height: 34px; }
+            .glass-card.card.p-4 { padding: .95rem !important; border-radius: 12px; }
+            .table td, .table th { font-size: .78rem; }
+            .btn.btn-danger.btn-sm, .btn.btn-secondary.btn-sm { font-size: .72rem; }
+        }
     </style>
 </head>
 <body>
