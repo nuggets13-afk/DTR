@@ -13,26 +13,27 @@ function db(): PDO
         return $pdo;
     }
 
-    // Vercel Environment Variables
+    // Vercel Environment Variables (Make sure these match your Prisma Dashboard)
     $host = getenv('DB_HOST');
-    $port = getenv('DB_PORT') ?: '3306';
-    $name = getenv('DB_NAME');
+    $port = getenv('DB_PORT') ?: '5432'; // Default Postgres port is 5432
+    $name = getenv('DB_NAME') ?: 'postgres';
     $user = getenv('DB_USER');
     $pass = getenv('DB_PASS');
 
     // Check if variables are missing
-    if (!$host || !$name || !$user) {
+    if (!$host || !$user || !$pass) {
         throw new Exception("Database configuration missing in Vercel Environment Variables.");
     }
 
-    $dsn = "mysql:host={$host};port={$port};dbname={$name};charset=utf8mb4";
+    // UPDATED: Changed to pgsql and added sslmode=require for Prisma/Aiven
+    $dsn = "pgsql:host={$host};port={$port};dbname={$name};sslmode=require";
 
     $options = [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES   => false,
-        // Critical for Serverless: Persistent connections can sometimes cause issues, 
-        // so we stick to standard connections here.
+        // Prisma Postgres pooling works best without persistent connections
+        PDO::ATTR_PERSISTENT         => false, 
     ];
 
     try {
