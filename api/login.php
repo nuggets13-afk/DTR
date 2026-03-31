@@ -35,8 +35,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_name'] = $user['name'];
 
                 // 4. VERCEL PERSISTENCE FIX: Set an explicit cookie.
-                // Standard PHP sessions often drop on Vercel redirects. 
-                // This cookie acts as a backup that config.php will read.
                 $cookieExpiry = time() + (86400 * 7); // 7 days
                 setcookie('app_user_id', (string)$user['id'], [
                     'expires' => $cookieExpiry,
@@ -89,6 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-login:hover { background: #b80400; }
         .form-control { background: #111; border: 1px solid #343434; color: #fff; }
         .form-control:focus { background: #111; color: #fff; border-color: #e10600; box-shadow: 0 0 0 .18rem rgba(225,6,0,.2); }
+        .brand-logo { height: 60px; width: auto; filter: drop-shadow(0 0 8px rgba(225,6,0,0.4)); }
     </style>
 </head>
 <body>
@@ -98,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="card auth-card">
                 <div class="card-body p-4 p-md-5">
                     <div class="text-center mb-4">
-                        <h2 class="fw-bold text-danger">OJT TRACKER</h2>
+                        <img src="OJTTracking.png" alt="OJT Tracking Logo" class="brand-logo mb-2">
                         <p class="text-secondary small">Please sign in to continue.</p>
                     </div>
 
