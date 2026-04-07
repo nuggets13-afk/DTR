@@ -1,5 +1,5 @@
-<?php
 
+<?php
 declare(strict_types=1);
 
 // auth.php handles the session check and redirects safely
@@ -54,6 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Save Total Required Hours Settings
     if (isset($_POST['save_settings'])) {
         $newRequired = trim($_POST['total_required_hours'] ?? '');
+
         if ($newRequired === '' || !is_numeric($newRequired) || (float)$newRequired < 0) {
             $errors[] = 'Total required hours must be a non-negative number.';
         } else {
@@ -89,6 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $logId = (int)($_POST['edit_log_id'] ?? 0);
         $editInRaw = trim($_POST['edit_time_in'] ?? '');
         $editOutRaw = trim($_POST['edit_time_out'] ?? '');
+
         $editIn = $editInRaw !== '' ? str_replace('T', ' ', $editInRaw) . ':00' : null;
         $editOut = $editOutRaw !== '' ? str_replace('T', ' ', $editOutRaw) . ':00' : null;
 
@@ -134,42 +136,11 @@ $avgHoursPerShift = (float)$sumRow['avg_hours'];
 $hoursRemaining = max(0, $totalRequired - $hoursRendered);
 $progress = $totalRequired > 0 ? min(100, round(($hoursRendered / $totalRequired) * 100, 2)) : 0;
 
-// --- PAGINATION SETUP ---
-$recordsPerPage = 10;
-$currentPage = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-if ($currentPage < 1) {
-    $currentPage = 1;
-}
-
-// Count total records for pagination
-$stmtTotal = $pdo->prepare('SELECT COUNT(*) FROM time_logs WHERE user_id = ?');
-$stmtTotal->execute([$userId]);
-$totalRecords = (int)$stmtTotal->fetchColumn();
-$totalPages = (int)ceil($totalRecords / $recordsPerPage);
-
-// Ensure current page is not out of bounds
-if ($currentPage > $totalPages && $totalPages > 0) {
-    $currentPage = $totalPages;
-}
-
-$offset = ($currentPage - 1) * $recordsPerPage;
-// --- END PAGINATION SETUP ---
-
-// Fetch History (with LIMIT and OFFSET)
-$stmtHistory = $pdo->prepare('
-    SELECT id, time_in, time_out, hours_rendered 
-    FROM time_logs 
-    WHERE user_id = ? 
-    ORDER BY time_in DESC 
-    LIMIT :limit OFFSET :offset
-');
-
-$stmtHistory->bindValue(':limit', $recordsPerPage, PDO::PARAM_INT);
-$stmtHistory->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmtHistory->bindValue(1, $userId, PDO::PARAM_INT);
-$stmtHistory->execute();
-
+// Fetch History
+$stmtHistory = $pdo->prepare('SELECT id, time_in, time_out, hours_rendered FROM time_logs WHERE user_id = ? ORDER BY time_in DESC LIMIT 10');
+$stmtHistory->execute([$userId]);
 $history = $stmtHistory->fetchAll();
+
 $editingId = isset($_GET['edit']) ? (int)$_GET['edit'] : 0;
 
 // UI Config
@@ -177,7 +148,6 @@ $bodyClass = 'theme-netflix';
 $tableClass = 'table table-dark table-hover align-middle mb-0';
 $inputClass = 'form-control nf-input';
 $progressColorHex = '#e10600';
-
 ?>
 <!doctype html>
 <html lang="en" data-bs-theme="dark">
@@ -254,6 +224,7 @@ $progressColorHex = '#e10600';
         .table.table-dark { --bs-table-bg: #121212; --bs-table-striped-bg: #161616; --bs-table-hover-bg: #1b1b1b; border-color: rgba(255,255,255,.08); }
         .table thead th { font-size: .77rem; letter-spacing: .04em; text-transform: uppercase; color: #d1d5db; border-bottom-color: rgba(255,255,255,.13); }
         .table td { font-size: .9rem; }
+
         .action-group {
             display: inline-flex;
             align-items: center;
@@ -294,9 +265,9 @@ $progressColorHex = '#e10600';
             background: linear-gradient(180deg, #ff1308 0%, #a70400 100%);
             border-color: #e10600;
         }
+
         .modal-content.glass-card { background: linear-gradient(180deg, #151515 0%, #0f0f0f 100%); border-color: rgba(255,255,255,.12); }
-        .pagination { --bs-pagination-bg: #151515; --bs-pagination-border-color: #333; --bs-pagination-hover-bg: #202020; --bs-pagination-hover-color: var(--text-main); --bs-pagination-active-bg: var(--accent); --bs-pagination-active-border-color: var(--accent-dark); --bs-pagination-disabled-bg: #101010; --bs-pagination-disabled-border-color: #222; }
-        
+
         @media (max-width: 768px) {
             .top-nav .container {
                 flex-direction: column;
@@ -328,7 +299,6 @@ $progressColorHex = '#e10600';
     </style>
 </head>
 <body>
-
 <nav class="navbar top-nav py-3">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
@@ -410,8 +380,8 @@ $progressColorHex = '#e10600';
                             <?php if ($editingId === (int)$log['id']): ?>
                                 <form method="post">
                                     <input type="hidden" name="edit_log_id" value="<?= $log['id'] ?>">
-                                    <td><input type="datetime-local" name="edit_time_in" class="<?= $inputClass ?> form-control-sm" value="<?= date('Y-m-d\\TH:i', strtotime((string)$log['time_in'])) ?>"></td>
-                                    <td><input type="datetime-local" name="edit_time_out" class="<?= $inputClass ?> form-control-sm" value="<?= $log['time_out'] ? date('Y-m-d\\TH:i', strtotime((string)$log['time_out'])) : '' ?>"></td>
+                                    <td><input type="datetime-local" name="edit_time_in" class="<?= $inputClass ?> form-control-sm" value="<?= date('Y-m-d\TH:i', strtotime((string)$log['time_in'])) ?>"></td>
+                                    <td><input type="datetime-local" name="edit_time_out" class="<?= $inputClass ?> form-control-sm" value="<?= $log['time_out'] ? date('Y-m-d\TH:i', strtotime((string)$log['time_out'])) : '' ?>"></td>
                                     <td>-</td>
                                     <td>
                                         <button name="save_edit" class="btn btn-danger btn-sm">Save</button>
@@ -437,27 +407,6 @@ $progressColorHex = '#e10600';
                 </tbody>
             </table>
         </div>
-
-        <?php if ($totalPages > 1): ?>
-        <nav aria-label="Page navigation" class="mt-4">
-            <ul class="pagination justify-content-center">
-                <li class="page-item <?= $currentPage <= 1 ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?page=<?= $currentPage - 1 ?>">Previous</a>
-                </li>
-
-                <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                    <li class="page-item <?= $i === $currentPage ? 'active' : '' ?>">
-                        <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
-                    </li>
-                <?php endfor; ?>
-
-                <li class="page-item <?= $currentPage >= $totalPages ? 'disabled' : '' ?>">
-                    <a class="page-link" href="?page=<?= $currentPage + 1 ?>">Next</a>
-                </li>
-            </ul>
-        </nav>
-        <?php endif; ?>
-
     </div>
 </div>
 
