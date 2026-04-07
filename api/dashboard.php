@@ -158,6 +158,10 @@ $progressColorHex = '#e10600';
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Dashboard - OJT Tracking</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script>
+        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
     <style>
         :root {
             --accent: #e10600;
