@@ -10,25 +10,27 @@ try {
     $userName = $_SESSION['user_name'] ?? 'User';
 
     // 1. Verify the user exists and fetch settings
-    // If the table 'users' doesn't exist, this will throw an exception caught below
     $stmtUser = $pdo->prepare("SELECT total_required_hours FROM users WHERE id = ? LIMIT 1");
     $stmtUser->execute([$userId]);
     $user = $stmtUser->fetch();
 
     if (!$user) {
-        // If the user was deleted from the DB, clear session and kick to login
         session_destroy();
         header('Location: login.php');
         exit;
     }
 } catch (PDOException $e) {
-    // This stops the infinite redirect loop by showing the actual error
     die("Database Error: " . $e->getMessage() . ". Please check if your 'users' table exists in the database.");
 }
 
 $totalRequired = (float)$user['total_required_hours'];
 $errors = [];
 $success = '';
+
+// Pagination variables
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
 
 // Helper to calculate hours rendered
 function computeHours(?string $in, ?string $out): float
@@ -53,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Save Total Required Hours Settings
     if (isset($_POST['save_settings'])) {
         $newRequired = trim($_POST['total_required_hours'] ?? '');
-
         if ($newRequired === '' || !is_numeric($newRequired) || (float)$newRequired < 0) {
             $errors[] = 'Total required hours must be a non-negative number.';
         } else {
@@ -79,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hours = computeHours($manualIn, $manualOut);
             $ins = $pdo->prepare('INSERT INTO time_logs (user_id, time_in, time_out, hours_rendered) VALUES (?, ?, ?, ?)');
             $ins->execute([$userId, $manualIn, $manualOut, $hours]);
-            header('Location: dashboard.php');
+            header("Location: dashboard.php?page=$page");
             exit;
         }
     }
@@ -89,7 +90,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $logId = (int)($_POST['edit_log_id'] ?? 0);
         $editInRaw = trim($_POST['edit_time_in'] ?? '');
         $editOutRaw = trim($_POST['edit_time_out'] ?? '');
-
         $editIn = $editInRaw !== '' ? str_replace('T', ' ', $editInRaw) . ':00' : null;
         $editOut = $editOutRaw !== '' ? str_replace('T', ' ', $editOutRaw) . ':00' : null;
 
@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $hours = computeHours($editIn, $editOut);
             $upd = $pdo->prepare('UPDATE time_logs SET time_in = ?, time_out = ?, hours_rendered = ? WHERE id = ? AND user_id = ?');
             $upd->execute([$editIn, $editOut, $hours, $logId, $userId]);
-            header('Location: dashboard.php');
+            header("Location: dashboard.php?page=$page");
             exit;
         }
     }
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($logId > 0) {
             $del = $pdo->prepare('DELETE FROM time_logs WHERE id = ? AND user_id = ?');
             $del->execute([$logId, $userId]);
-            header('Location: dashboard.php');
+            header("Location: dashboard.php?page=$page");
             exit;
         }
     }
@@ -135,8 +135,11 @@ $avgHoursPerShift = (float)$sumRow['avg_hours'];
 $hoursRemaining = max(0, $totalRequired - $hoursRendered);
 $progress = $totalRequired > 0 ? min(100, round(($hoursRendered / $totalRequired) * 100, 2)) : 0;
 
-// Fetch History
-$stmtHistory = $pdo->prepare('SELECT id, time_in, time_out, hours_rendered FROM time_logs WHERE user_id = ? ORDER BY time_in DESC LIMIT 10');
+// Pagination total pages
+$totalPages = ceil($totalShifts / $limit);
+
+// Fetch History with Pagination
+$stmtHistory = $pdo->prepare("SELECT id, time_in, time_out, hours_rendered FROM time_logs WHERE user_id = ? ORDER BY time_in DESC LIMIT $limit OFFSET $offset");
 $stmtHistory->execute([$userId]);
 $history = $stmtHistory->fetchAll();
 
@@ -223,7 +226,6 @@ $progressColorHex = '#e10600';
         .table.table-dark { --bs-table-bg: #121212; --bs-table-striped-bg: #161616; --bs-table-hover-bg: #1b1b1b; border-color: rgba(255,255,255,.08); }
         .table thead th { font-size: .77rem; letter-spacing: .04em; text-transform: uppercase; color: #d1d5db; border-bottom-color: rgba(255,255,255,.13); }
         .table td { font-size: .9rem; }
-
         .action-group {
             display: inline-flex;
             align-items: center;
@@ -264,9 +266,13 @@ $progressColorHex = '#e10600';
             background: linear-gradient(180deg, #ff1308 0%, #a70400 100%);
             border-color: #e10600;
         }
-
         .modal-content.glass-card { background: linear-gradient(180deg, #151515 0%, #0f0f0f 100%); border-color: rgba(255,255,255,.12); }
-
+        
+        /* Custom Pagination styles to match Netflix theme */
+        .page-link { background-color: #171717; border-color: rgba(255,255,255,.08); color: #cfd3d8; }
+        .page-link:hover { background-color: #202020; border-color: rgba(255,255,255,.16); color: #fff; }
+        .page-item.disabled .page-link { background-color: #121212; border-color: rgba(255,255,255,.04); color: #6c757d; }
+        
         @media (max-width: 768px) {
             .top-nav .container {
                 flex-direction: column;
@@ -298,6 +304,7 @@ $progressColorHex = '#e10600';
     </style>
 </head>
 <body>
+
 <nav class="navbar top-nav py-3">
     <div class="container d-flex justify-content-between align-items-center">
         <div>
@@ -374,38 +381,61 @@ $progressColorHex = '#e10600';
                     <tr><th>Time In</th><th>Time Out</th><th>Hrs</th><th>Action</th></tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($history as $log): ?>
-                        <tr>
-                            <?php if ($editingId === (int)$log['id']): ?>
-                                <form method="post">
-                                    <input type="hidden" name="edit_log_id" value="<?= $log['id'] ?>">
-                                    <td><input type="datetime-local" name="edit_time_in" class="<?= $inputClass ?> form-control-sm" value="<?= date('Y-m-d\TH:i', strtotime((string)$log['time_in'])) ?>"></td>
-                                    <td><input type="datetime-local" name="edit_time_out" class="<?= $inputClass ?> form-control-sm" value="<?= $log['time_out'] ? date('Y-m-d\TH:i', strtotime((string)$log['time_out'])) : '' ?>"></td>
-                                    <td>-</td>
+                    <?php if (count($history) > 0): ?>
+                        <?php foreach ($history as $log): ?>
+                            <tr>
+                                <?php if ($editingId === (int)$log['id']): ?>
+                                    <form method="post">
+                                        <input type="hidden" name="edit_log_id" value="<?= $log['id'] ?>">
+                                        <td><input type="datetime-local" name="edit_time_in" class="<?= $inputClass ?> form-control-sm" value="<?= date('Y-m-d\TH:i', strtotime((string)$log['time_in'])) ?>"></td>
+                                        <td><input type="datetime-local" name="edit_time_out" class="<?= $inputClass ?> form-control-sm" value="<?= $log['time_out'] ? date('Y-m-d\TH:i', strtotime((string)$log['time_out'])) : '' ?>"></td>
+                                        <td>-</td>
+                                        <td>
+                                            <button name="save_edit" class="btn btn-danger btn-sm">Save</button>
+                                            <a href="dashboard.php?page=<?= $page ?>" class="btn btn-secondary btn-sm">X</a>
+                                        </td>
+                                    </form>
+                                <?php else: ?>
+                                    <td><?= date('M d, H:i', strtotime((string)$log['time_in'])) ?></td>
+                                    <td><?= $log['time_out'] ? date('H:i', strtotime((string)$log['time_out'])) : 'Active' ?></td>
+                                    <td><?= htmlspecialchars(formatHoursMins((float)$log['hours_rendered'])) ?> <span class="opacity-75">(<?= number_format((float)$log['hours_rendered'], 2) ?>h)</span></td>
                                     <td>
-                                        <button name="save_edit" class="btn btn-danger btn-sm">Save</button>
-                                        <a href="dashboard.php" class="btn btn-secondary btn-sm">X</a>
+                                        <div class="action-group">
+                                            <a href="?page=<?= $page ?>&edit=<?= $log['id'] ?>" class="action-btn action-edit">Edit</a>
+                                            <form method="post" class="d-inline mb-0">
+                                                <input type="hidden" name="delete_log_id" value="<?= $log['id'] ?>">
+                                                <button name="delete_shift" class="action-btn action-delete" onclick="return confirm('Delete this shift?')">Delete</button>
+                                            </form>
+                                        </div>
                                     </td>
-                                </form>
-                            <?php else: ?>
-                                <td><?= date('M d, H:i', strtotime((string)$log['time_in'])) ?></td>
-                                <td><?= $log['time_out'] ? date('H:i', strtotime((string)$log['time_out'])) : 'Active' ?></td>
-                                <td><?= htmlspecialchars(formatHoursMins((float)$log['hours_rendered'])) ?> <span class="opacity-75">(<?= number_format((float)$log['hours_rendered'], 2) ?>h)</span></td>
-                                <td>
-                                    <div class="action-group">
-                                        <a href="?edit=<?= $log['id'] ?>" class="action-btn action-edit">Edit</a>
-                                        <form method="post" class="d-inline mb-0">
-                                            <input type="hidden" name="delete_log_id" value="<?= $log['id'] ?>">
-                                            <button name="delete_shift" class="action-btn action-delete" onclick="return confirm('Delete this shift?')">Delete</button>
-                                        </form>
-                                    </div>
-                                </td>
-                            <?php endif; ?>
-                        </tr>
-                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr><td colspan="4" class="text-center opacity-50 py-3">No shifts logged yet.</td></tr>
+                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
+        
+        <!-- Pagination Controls -->
+        <?php if ($totalPages > 1): ?>
+            <nav aria-label="History pagination" class="mt-4">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    <li class="page-item <?= $page <= 1 ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page - 1 ?><?= $editingId ? '&edit='.$editingId : '' ?>">Previous</a>
+                    </li>
+                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                        <li class="page-item <?= $i === $page ? 'active' : '' ?>">
+                            <a class="page-link <?= $i === $page ? 'bg-danger border-danger text-white' : '' ?>" href="?page=<?= $i ?><?= $editingId ? '&edit='.$editingId : '' ?>"><?= $i ?></a>
+                        </li>
+                    <?php endfor; ?>
+                    <li class="page-item <?= $page >= $totalPages ? 'disabled' : '' ?>">
+                        <a class="page-link" href="?page=<?= $page + 1 ?><?= $editingId ? '&edit='.$editingId : '' ?>">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        <?php endif; ?>
     </div>
 </div>
 
