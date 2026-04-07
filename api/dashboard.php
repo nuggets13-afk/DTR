@@ -136,7 +136,7 @@ $hoursRemaining = max(0, $totalRequired - $hoursRendered);
 $progress = $totalRequired > 0 ? min(100, round(($hoursRendered / $totalRequired) * 100, 2)) : 0;
 
 // Fetch History
-$stmtHistory = $pdo->prepare('SELECT id, time_in, time_out, hours_rendered FROM time_logs WHERE user_id = ? ORDER BY time_in DESC');
+$stmtHistory = $pdo->prepare('SELECT id, time_in, time_out, hours_rendered FROM time_logs WHERE user_id = ? ORDER BY time_in DESC LIMIT 10');
 $stmtHistory->execute([$userId]);
 $history = $stmtHistory->fetchAll();
 
