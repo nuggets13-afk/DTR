@@ -70,6 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Login - OJT Tracking</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         body {
             min-height: 100vh;
@@ -83,7 +84,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: linear-gradient(180deg, #171717 0%, #101010 100%);
             box-shadow: 0 14px 36px rgba(0,0,0,.38);
         }
-        /* Fixes the dark label visibility */
         .form-label { 
             color: #f5f5f1 !important; 
             font-weight: 500;
@@ -92,6 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .btn-login:hover { background: #b80400; }
         .form-control { background: #111; border: 1px solid #343434; color: #fff; }
         .form-control:focus { background: #111; color: #fff; border-color: #e10600; box-shadow: 0 0 0 .18rem rgba(225,6,0,.2); }
+        
+        /* Style for the Eye Button */
+        .input-group-text { background: #111; border: 1px solid #343434; color: #888; cursor: pointer; }
+        .input-group-text:hover { color: #fff; }
+
         .brand-logo { height: 60px; width: auto; max-width: 100%; filter: drop-shadow(0 0 8px rgba(225,6,0,0.4)); }
 
         .auth-foot {
@@ -105,59 +110,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         @media (max-width: 576px) {
-            body {
-                background: #050505;
-            }
-            .container.py-5 {
-                padding-top: .35rem !important;
-                padding-bottom: .5rem !important;
-                max-width: 100% !important;
-            }
-            .row[style*="min-height: 80vh"] {
-                min-height: 100vh !important;
-                margin: 0 !important;
-                align-items: center !important;
-            }
-            .row[style*="min-height: 80vh"] > [class*="col-"] {
-                padding-left: .35rem !important;
-                padding-right: .35rem !important;
-            }
-            .auth-card {
-                border-radius: 12px;
-                margin: 0;
-            }
-            .auth-card .card-body {
-                padding: .95rem .85rem !important;
-            }
-            .text-center.mb-4 {
-                margin-bottom: .85rem !important;
-            }
-            .brand-logo {
-                height: 34px;
-            }
-            .form-label {
-                font-size: .82rem;
-                margin-bottom: .35rem;
-            }
-            .form-control {
-                font-size: .88rem;
-                min-height: 40px;
-                padding: .42rem .62rem;
-            }
-            .mb-3 {
-                margin-bottom: .75rem !important;
-            }
-            .mb-4 {
-                margin-bottom: .9rem !important;
-            }
-            .btn-login {
-                padding: .58rem;
-                font-size: .9rem;
-            }
-            .auth-foot {
-                font-size: .82rem;
-                margin-top: .9rem !important;
-            }
+            body { background: #050505; }
+            .container.py-5 { padding-top: .35rem !important; padding-bottom: .5rem !important; max-width: 100% !important; }
+            .row[style*="min-height: 80vh"] { min-height: 100vh !important; margin: 0 !important; align-items: center !important; }
+            .row[style*="min-height: 80vh"] > [class*="col-"] { padding-left: .35rem !important; padding-right: .35rem !important; }
+            .auth-card { border-radius: 12px; margin: 0; }
+            .auth-card .card-body { padding: .95rem .85rem !important; }
+            .text-center.mb-4 { margin-bottom: .85rem !important; }
+            .brand-logo { height: 34px; }
+            .form-label { font-size: .82rem; margin-bottom: .35rem; }
+            .form-control { font-size: .88rem; min-height: 40px; padding: .42rem .62rem; }
+            .mb-3 { margin-bottom: .75rem !important; }
+            .mb-4 { margin-bottom: .9rem !important; }
+            .btn-login { padding: .58rem; font-size: .9rem; }
+            .auth-foot { font-size: .82rem; margin-top: .9rem !important; }
         }
     </style>
 </head>
@@ -192,8 +158,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="email" name="email" class="form-control" required value="<?= htmlspecialchars($email) ?>">
                         </div>
                         <div class="mb-4">
-                            <label class="form-label">Password</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <div class="d-flex justify-content-between">
+                                <label class="form-label">Password</label>
+                                <a href="forgot-password.php" class="small text-decoration-none fw-bold" style="color: #fca5a5;">Forgot Password?</a>
+                            </div>
+                            <div class="input-group">
+                                <input type="password" name="password" id="password" class="form-control" required>
+                                <span class="input-group-text" id="togglePassword">
+                                    <i class="bi bi-eye-slash" id="eyeIcon"></i>
+                                </span>
+                            </div>
                         </div>
                         <button class="btn btn-login w-100" type="submit">Sign In</button>
                     </form>
@@ -206,5 +180,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+
+<script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+    const eyeIcon = document.querySelector('#eyeIcon');
+
+    togglePassword.addEventListener('click', function () {
+        // Toggle the type attribute
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+        
+        // Toggle the icon
+        eyeIcon.classList.toggle('bi-eye');
+        eyeIcon.classList.toggle('bi-eye-slash');
+    });
+</script>
 </body>
 </html>
