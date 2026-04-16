@@ -11,9 +11,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Please enter a valid email address.';
     } else {
-        // Logic for sending reset link would go here
-        // For now, we provide a UI feedback message
-        $message = "If an account exists for $email, you will receive a password reset link shortly.";
+        try {
+            $pdo = db();
+            // 1. Check if user exists
+            $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? LIMIT 1");
+            $stmt->execute([$email]);
+            $user = $stmt->fetch();
+
+            if ($user) {
+                // 2. Generate a unique token and expiry (valid for 1 hour)
+                $token = bin2hex(random_bytes(32));
+                $expires = date("Y-m-d H:i:s", strtotime('+1 hour'));
+
+                // 3. Store token in database 
+                // Note: Ensure your 'users' table has 'reset_token' and 'reset_expires' columns
+                $update = $pdo->prepare("UPDATE users SET reset_token = ?, reset_expires = ? WHERE email = ?");
+                $update->execute([$token, $expires, $email]);
+
+                // 4. Send Email Logic
+                // In a Vercel/Production environment, you would use PHPMailer or a Mail API here.
+                // For now, we simulate the success message.
+                $message = "If an account exists for " . htmlspecialchars($email) . ", you will receive a password reset link shortly.";
+            } else {
+                // We show the same message for security (prevents email enumeration)
+                $message = "If an account exists for " . htmlspecialchars($email) . ", you will receive a password reset link shortly.";
+            }
+        } catch (PDOException $e) {
+            $error = "Database connection error. Please try again later.";
+        }
     }
 }
 ?>
